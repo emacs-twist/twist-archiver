@@ -1,4 +1,5 @@
 {
+  lib,
   runCommand,
   gnumake,
   writeShellApplication,
