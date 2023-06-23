@@ -1,0 +1,2 @@
+This flake provides a function which lets you build an archive for offline installation
+of Emacs configuration.
