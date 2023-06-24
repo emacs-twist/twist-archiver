@@ -42,6 +42,17 @@ in
       archive="${narName}"
       out="${outName}"
 
+      function check_not_exists() {
+        local file="$1"
+        if [[ -e "$file" ]]
+        then
+          echo "$file already exists. Aborting" >&2
+          exit 1
+        fi
+      }
+      check_not_exists "$archive"
+      check_not_exists "$files"
+
       function cleanup() {
         rm -f  "$files" "$archive"
       }
