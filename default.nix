@@ -42,12 +42,12 @@ in
       archive="${narName}"
       out="${outName}"
 
-      set -x
-
-      echo > "$files" "${concatStringsSep "\n" [
+      echo "${concatStringsSep "\n" [
         emacs-env
         share
-      ]}"
+      ]}" | tee "$files"
+
+      set -x
 
       xargs nix-store -qR < "$files" \
         | xargs nix-store --export > "$archive"
