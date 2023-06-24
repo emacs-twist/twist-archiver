@@ -1,2 +1,114 @@
+* twist-archiver
 This flake provides a function which lets you build an archive for offline installation
 of Emacs configuration.
+
+It doesn't produce a self-contained archive as [[https://github.com/matthewbauer/nix-bundle][nix-bundle]] does.
+Rather, you can import the configuration as well as its dependencies using =nix-store --import= into your Nix store, so you can use your Emacs configuration even in an environment where you can't clone repositories from GitHub.
+You still require Nix, but you don't require full network connectivity.
+You can just download an archive and import it into the Nix store.
+** How it works
+The Nix application produces a zstd-compressed archive that contains two files:
+
+- A NAR archive containing everything needed to run your Emacs configuration.
+- A text file that contains a list of store paths that should be installed to your Nix profile. It exposes executables (most notably =bin/emacs=) and the init file =share/emacs/init.el= (and =early-init.el= if you specify one).
+
+The former one can be imported into your Nix store using =nix-store --import=.
+The latter can be installed using =nix-env -i= or =nix profile install=.
+** Configuration
+The flake provides an overlay which you can integrate into nixpkgs.
+
+First add an input to =flake.nix=:
+
+#+begin_src nix
+  {
+    inputs.twist-archiver.url = "github:emacs-twist/twist-archiver";
+
+    outputs = {nixpkgs, ...} @ inputs:
+      ...
+  }
+#+end_src
+
+Then add an overlay:
+
+#+begin_src nix
+  let
+    pkgs = import nixpkgs {
+      inherit system;
+      overlays = [
+        inputs.emacs-twist.overlays.default
+        inputs.twist-archiver.overlays.default
+        ...
+      ];
+    }
+  in
+     ...
+#+end_src
+
+Then you can use =makeEmacsTwistArchive= function which takes two arguments: an attribute set of options and a twist configuration derivation.
+An flake configuration example is as follows:
+
+#+begin_src nix
+  {
+    packages = {
+      inherit emacs-config;
+      build-archive = pkgs.makeEmacsTwistArchive {
+        # Name should be the same as the output name in the flake
+        name = "build-archive";
+        # Source of early-init.el (optional)
+        earlyInitFile = ./early-init.el;
+        # Name of the nar archive (optional)
+        narName = "archive.nar";
+        # Name of the zstd archive (optional)
+        outName = "archive.tar.zstd";
+      } emacs-config;
+    };
+  }
+#+end_src
+** Usage
+With the configuration above, you can build an archive using =nix run= command:
+
+#+begin_src bash
+  nix run .#build-archive
+#+end_src
+
+It produces =archive.tar.zstd= (or the name you specified as =outName=).
+
+You can try it out in an isolated environment using Docker.
+Note that you don't require Docker at all to extract from the archive:
+
+#+begin_src bash
+  docker run -ti -v $PWD:/data -w /data nixos/nix
+#+end_src
+
+You can uncompress the archive using =zstd=:
+
+#+begin_src bash
+  zstd -d archive.tar.zstd
+  zstdcat archive.tar.zstd | tar xf -
+#+end_src
+
+and import the configuration:
+
+#+begin_src bash
+  nix-store --import archive.nar
+#+end_src
+
+The archive also includes =files.txt= which contains a list of store paths to install:
+
+#+begin_src bash
+  xargs nix-env -i < files.txt
+#+end_src
+
+Create symbolic links to =early-init.el= and =init.el= installed to the Nix profile:
+
+#+begin_src bash
+  mkdir -p ~/.config/emacs
+  cd ~/.nix-profile/share/emacs
+  ln -st ~/.config/emacs init.el early-init.el
+#+end_src
+
+Now you can start Emacs with the imported configuration:
+
+#+begin_src bash
+  emacs -nw
+#+end_src
