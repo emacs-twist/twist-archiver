@@ -42,6 +42,11 @@ in
       archive="${narName}"
       out="${outName}"
 
+      function cleanup() {
+        rm -f  "$files" "$archive"
+      }
+      trap cleanup ERR EXIT
+
       echo "${concatStringsSep "\n" [
         emacs-env
         share
