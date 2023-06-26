@@ -103,8 +103,10 @@ Create symbolic links to =early-init.el= and =init.el= installed to the Nix prof
 
 #+begin_src bash
   mkdir -p ~/.config/emacs
-  cd ~/.nix-profile/share/emacs
-  ln -st ~/.config/emacs init.el early-init.el
+  cd ~/.config/emacs
+  for file in init.el early-init.el; do
+      ln -s ~/.nix-profile/share/emacs/$file
+  done
 #+end_src
 
 Now you can start Emacs with the imported configuration:
