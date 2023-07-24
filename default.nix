@@ -10,6 +10,7 @@
   earlyInitFile ? null,
   narName ? "archive.nar",
   outName ? "archive.tar.zstd",
+  manifestName ? "twist-manifest.json",
 }: emacs-env: let
   inherit (builtins) concatStringsSep;
 
@@ -30,6 +31,12 @@
       "install ${earlyInitFile} $out/share/emacs/early-init.el"
     }
     install -t $out/share/emacs ${initFile}/init.el
+    ${
+      lib.optionalString (manifestName != null) ''
+        install ${emacs-env.emacsWrapper.elispManifestPath} \
+          $out/share/emacs/${manifestName}
+      ''
+    }
   '';
 in
   writeShellApplication {
