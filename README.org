@@ -2,7 +2,7 @@
 This flake provides a function which lets you build an archive for offline installation
 of Emacs configuration.
 
-It doesn't produce a self-contained archive as [[https://github.com/matthewbauer/nix-bundle][nix-bundle]] does.
+Unlike [[https://github.com/matthewbauer/nix-bundle][nix-bundle]], it doesn't produce a self-contained archive.
 Rather, you can import the configuration as well as its dependencies using =nix-store --import= into your Nix store, so you can use your Emacs configuration even in an environment where you can't clone repositories from GitHub.
 You still require Nix, but you don't require full network connectivity.
 You can just download an archive and import it into the Nix store.
