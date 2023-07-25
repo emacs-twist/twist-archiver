@@ -60,6 +60,9 @@ An flake configuration example is as follows:
         narName = "archive.nar";
         # Name of the zstd archive (optional)
         outName = "archive.tar.zstd";
+        # Name of the manifest which is needed for hot reloading using twist.el
+        # (optional)
+        manifestName = "twist-manifest.json",
       } emacs-config;
     };
   }
@@ -104,7 +107,7 @@ Create symbolic links to =early-init.el= and =init.el= installed to the Nix prof
 #+begin_src bash
   mkdir -p ~/.config/emacs
   cd ~/.config/emacs
-  for file in init.el early-init.el; do
+  for file in init.el early-init.el twist-manifest.json; do
       ln -s ~/.nix-profile/share/emacs/$file
   done
 #+end_src
